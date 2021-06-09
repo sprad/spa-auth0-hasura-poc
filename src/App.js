@@ -1,23 +1,49 @@
-import logo from './logo.svg';
 import './App.css';
+import { useEffect, useState } from 'react'
+import LoginButton from './LoginButton';
+import LogoutButton from './LogoutButton';
+import { useAuth0 } from "@auth0/auth0-react";
+import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from '@apollo/client';
+
+const createApolloClient = (authToken) => {
+  console.log("authtoken:", authToken);
+
+  return new ApolloClient({
+    link: new HttpLink({
+      uri: 'https://sprad-test-2.hasura.app/v1/graphql',
+      headers: {
+        Authorization: `Bearer ${authToken}`
+      }
+    }),
+    cache: new InMemoryCache(),
+  });
+};
 
 function App() {
+  const { isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  const [client, setClient] = useState();
+
+  useEffect(() => {
+    if(!client) {
+      getAccessTokenSilently().then((accessToken) => {
+        console.log("access token:", accessToken);
+        if (accessToken) {
+          setClient(createApolloClient(accessToken));
+        }
+      }).catch(console.error)
+    } else if (!isAuthenticated) {
+      setClient(undefined)
+    }
+
+  }, [getAccessTokenSilently, client, isAuthenticated])
+
+  if(isLoading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      { isAuthenticated && client ? <ApolloProvider client={client}><LogoutButton /></ApolloProvider> : <LoginButton /> }
     </div>
   );
 }
