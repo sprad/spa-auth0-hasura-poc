@@ -10,6 +10,9 @@ const createApolloClient = (authToken) => {
 
   return new ApolloClient({
     link: new HttpLink({
+      // I just set up my own Hasura instance in the cloud so that
+      // we don't have to mess with production. It's configured
+      // exactly like production.
       uri: 'https://sprad-test-2.hasura.app/v1/graphql',
       headers: {
         Authorization: `Bearer ${authToken}`
@@ -25,6 +28,8 @@ function App() {
 
   useEffect(() => {
     if(!client) {
+      // This is the call that gets the access token (JWT) needed to
+      // make calls to Hasura.
       getAccessTokenSilently().then((accessToken) => {
         console.log("access token:", accessToken);
         if (accessToken) {

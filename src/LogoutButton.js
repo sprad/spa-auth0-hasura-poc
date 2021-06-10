@@ -13,6 +13,8 @@ const LogoutButton = (idToken) => {
   console.log("logout button called");
 
   const { logout } = useAuth0();
+  // Obviously calling a query doesn't belong in button component
+  // but I was just trying to get something done quickly.
   const { loading, error, data } = useQuery(GET_CUSTOMERS);
 
    if (loading) {
